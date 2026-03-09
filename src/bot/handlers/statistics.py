@@ -20,7 +20,15 @@ async def show_statistics(event: Message | CallbackQuery, stats_service: Statist
 
     loading_msg = await msg.answer(get_msg("statistics.loading"))
     
-    user = await habit_service.repo.db.users.find_one({"telegram_id": uid})
+    # Ensure user exists in DB and has up-to-date username/name
+    user = await habit_service.get_or_create_user(
+        uid,
+        event.from_user.username,
+        event.from_user.first_name,
+        last_name=event.from_user.last_name,
+        lang_code=event.from_user.language_code,
+        is_premium=event.from_user.is_premium
+    )
     
     comp_rate = await stats_service.get_completion_rate(uid)
     best_habit = await stats_service.get_best_habit(uid)
