@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 from datetime import datetime
 
 from config.messages_loader import get_msg
