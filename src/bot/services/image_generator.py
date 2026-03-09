@@ -28,23 +28,32 @@ class StatsImageGenerator:
         return img_byte_arr.getvalue()
 
     def _get_file_path(self, folder: str, filename: str):
+        # Determine the root directory (3 levels up from this file)
+        root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
+        
         paths = [
-            os.path.join(folder, filename),
-            os.path.join(os.getcwd(), folder, filename),
-            os.path.join(os.path.dirname(__file__), "../../../", folder, filename),
+            # 1. Absolute path in Docker
             f"/app/{folder}/{filename}",
-            f"/Users/bozhenkas/Documents/code/daywith/{folder}/{filename}"
+            # 2. Absolute path relative to project root
+            os.path.join(root_dir, folder, filename),
         ]
+        
         if folder == "assets":
+            # Specific handling for fonts
             paths.extend([
-                os.path.join("assets/fonts", filename),
-                os.path.join(os.getcwd(), "assets/fonts", filename),
-                os.path.join(os.path.dirname(__file__), "../../../assets/fonts", filename),
+                f"/app/assets/fonts/{filename}",
+                os.path.join(root_dir, "assets/fonts", filename),
             ])
 
         for p in paths:
             if os.path.exists(p):
                 return p
+        
+        # Fallback to local discovery for development
+        dev_path = os.path.join(os.getcwd(), folder, filename)
+        if os.path.exists(dev_path):
+            return dev_path
+            
         return None
 
     def _get_font(self, size: int, weight=400, slant=-10):
