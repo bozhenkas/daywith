@@ -10,18 +10,18 @@ BTN_SKIP = "пропустить"
 def get_habits_list_keyboard(habits: List[dict]) -> InlineKeyboardMarkup:
     kb = []
     for h in habits:
-        icon = "🟢" if h["type"] == "good" else "🔴"
-        kb.append([InlineKeyboardButton(text=f"{icon} {h['name']}", callback_data=f"habit:edit:{h['_id']}")])
-    kb.append([InlineKeyboardButton(text=BTN_ADD_HABIT, callback_data="habit:add")])
+        style = "success" if h["type"] == "good" else "danger"
+        kb.append([InlineKeyboardButton(text=f"{h['name']}", callback_data=f"habit:edit:{h['_id']}", **{"style": style})])
+    kb.append([InlineKeyboardButton(text=BTN_ADD_HABIT, callback_data="habit:add", **{"style": "primary"})])
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 def get_habit_type_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text=BTN_GOOD, callback_data="htype:good"),
-            InlineKeyboardButton(text=BTN_BAD, callback_data="htype:bad")
+            InlineKeyboardButton(text=BTN_GOOD, callback_data="htype:good", **{"style": "success"}),
+            InlineKeyboardButton(text=BTN_BAD, callback_data="htype:bad", **{"style": "danger"})
         ],
-        [InlineKeyboardButton(text=BTN_BACK, callback_data="habit:cancel_add")]
+        [InlineKeyboardButton(text=BTN_BACK, callback_data="habit:cancel_add", **{"style": "primary"})]
     ])
 
 def get_skip_keyboard() -> InlineKeyboardMarkup:
@@ -31,6 +31,6 @@ def get_skip_keyboard() -> InlineKeyboardMarkup:
 
 def get_habit_edit_keyboard(habit_id: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="удалить", callback_data=f"habit:del:{habit_id}")],
-        [InlineKeyboardButton(text=BTN_BACK, callback_data="menu:habits")]
+        [InlineKeyboardButton(text="удалить", callback_data=f"habit:del:{habit_id}", **{"style": "danger"})],
+        [InlineKeyboardButton(text=BTN_BACK, callback_data="menu:habits", **{"style": "primary"})]
     ])
