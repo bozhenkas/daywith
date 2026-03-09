@@ -4,8 +4,8 @@ import io
 class StatsImageGenerator:
     WIDTH = 1080
     HEIGHT = 1920
-    # Inside container path
-    FONT_PATH = "assets/fonts/Inter-Variable.ttf"
+    # Paths to try
+    FONT_FILENAME = "Inter-Regular.ttf"
 
     def generate(self, user_data: dict, stats: dict) -> bytes:
         img = Image.new('RGB', (self.WIDTH, self.HEIGHT), '#1E1E1E')
@@ -20,18 +20,24 @@ class StatsImageGenerator:
 
     def _get_font(self, size: int):
         import os
-        # Try both relative to app root and absolute for robustness
+        # Try several locations
         paths = [
-            self.FONT_PATH,
-            os.path.join(os.getcwd(), self.FONT_PATH),
-            os.path.join(os.path.dirname(__file__), "../../../", self.FONT_PATH)
+            os.path.join("assets/fonts", self.FONT_FILENAME),
+            os.path.join(os.getcwd(), "assets/fonts", self.FONT_FILENAME),
+            os.path.join(os.path.dirname(__file__), "../../../assets/fonts", self.FONT_FILENAME),
+            # Host fallback for local testing if not in docker
+            f"/Users/bozhenkas/Documents/code/daywith/assets/fonts/{self.FONT_FILENAME}"
         ]
+        
         for p in paths:
             if os.path.exists(p):
                 try:
                     return ImageFont.truetype(p, size)
-                except:
+                except Exception as e:
+                    print(f"Error loading font {p}: {e}")
                     continue
+        
+        print("WARNING: Could not load Inter font, falling back to default")
         return ImageFont.load_default()
 
     def _draw_text_with_spacing(self, draw: ImageDraw, position: tuple, text: str, font, fill: str, spacing_percent: float = -0.04):

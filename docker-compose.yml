@@ -8,6 +8,7 @@ services:
     volumes:
       - ./generated_images:/app/generated_images
       - ./src:/app/src
+      - ./assets:/app/assets
 
   mongodb:
     image: mirror.gcr.io/library/mongo:7.0
