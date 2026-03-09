@@ -1,0 +1,37 @@
+name: Python CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    name: Deploy Application to Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.9
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            # Переходим в директорию с проектом
+            cd ~/daywith
+            
+            # 1. Получаем последние изменения из ветки main
+            git pull origin main
+            
+            # 2. Останавливаем работающие контейнеры
+            docker compose stop
+            
+            # 3. Удаляем старые контейнеры
+            docker compose rm -f
+            
+            # 4. Запускаем проект с пересборкой образа бота
+            docker compose up --build -d
