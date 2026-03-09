@@ -7,8 +7,7 @@ class StatsImageGenerator:
     # New dimensions based on stat_bg.jpg (768x1024)
     WIDTH = 768
     HEIGHT = 1024
-    FONT_FILENAME = "Inter-Regular.ttf"
-    FONT_ITALIC_FILENAME = "Inter-Italic.ttf"
+    FONT_FILENAME = "Inter-VariableFont_slnt,wght.ttf"
     BG_FILENAME = "stat_bg.jpg"
 
     def generate(self, user_data: dict, stats: dict) -> bytes:
@@ -48,24 +47,22 @@ class StatsImageGenerator:
                 return p
         return None
 
-    def _get_font(self, size: int, italic=True):
-        # Prefer italic if requested
-        filenames = [self.FONT_ITALIC_FILENAME, self.FONT_FILENAME] if italic else [self.FONT_FILENAME]
+    def _get_font(self, size: int, weight=400, slant=-10):
+        font_path = self._get_file_path("assets", self.FONT_FILENAME)
+        if font_path:
+            try:
+                font = ImageFont.truetype(font_path, size)
+                # Check if it's a variable font and set axes
+                if hasattr(font, 'set_variation_by_axes'):
+                    try:
+                        font.set_variation_by_axes([weight, slant])
+                    except Exception as e:
+                        print(f"Error setting variation axes: {e}")
+                return font
+            except Exception as e:
+                print(f"Error loading font {font_path}: {e}")
         
-        for filename in filenames:
-            font_path = self._get_file_path("assets", filename)
-            if font_path:
-                try:
-                    return ImageFont.truetype(font_path, size)
-                except Exception as e:
-                    print(f"Error loading font {font_path}: {e}")
-        
-        # Fallback to variable font if exists
-        v_path = self._get_file_path("assets", "Inter-Variable.ttf")
-        if v_path:
-             return ImageFont.truetype(v_path, size)
-
-        print("WARNING: Could not load Inter font, falling back to default")
+        print(f"WARNING: Could not load {self.FONT_FILENAME}, falling back to default")
         return ImageFont.load_default()
 
     def _draw_text_with_spacing(self, draw: ImageDraw, position: tuple, text: str, font, fill: str, spacing_px: float, align="left", container_width=0):
@@ -93,8 +90,8 @@ class StatsImageGenerator:
 
     def _draw_header(self, draw: ImageDraw, user_data: dict):
         username = user_data.get("username", "user") if user_data else "user"
-        font_80 = self._get_font(80, italic=True)
-        font_32 = self._get_font(32, italic=True)
+        font_80 = self._get_font(80) # Default is regular italic (slant=-10)
+        font_32 = self._get_font(32)
         
         # Container start
         base_x, base_y = 60, 60
@@ -109,7 +106,7 @@ class StatsImageGenerator:
     def _draw_stats_summary(self, draw: ImageDraw, stats: dict):
         rate = stats.get("completion_rate", 0)
         month = get_russian_month()
-        font_60 = self._get_font(60, italic=True)
+        font_60 = self._get_font(60)
         
         # Monthly Block
         base_x, base_y = 60, 410
