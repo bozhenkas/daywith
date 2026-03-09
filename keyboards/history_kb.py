@@ -7,13 +7,12 @@ def get_date_navigation_keyboard(current_date: datetime) -> InlineKeyboardMarkup
     
     return InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="◀️", callback_data=f"hist:prev:{prev_date.strftime('%Y-%m-%d')}"),
+            InlineKeyboardButton(text="◀", callback_data=f"hist:prev:{prev_date.strftime('%Y-%m-%d')}"),
             InlineKeyboardButton(text=current_date.strftime("%d.%m.%Y"), callback_data="hist:noop"),
-            InlineKeyboardButton(text="▶️", callback_data=f"hist:next:{next_date.strftime('%Y-%m-%d')}")
+            InlineKeyboardButton(text="▶", callback_data=f"hist:next:{next_date.strftime('%Y-%m-%d')}")
         ],
         [
-            InlineKeyboardButton(text="📅 Выбрать дату", callback_data="hist:pick"),
-            InlineKeyboardButton(text="⏮ Сегодня", callback_data="hist:today")
-        ],
-        [InlineKeyboardButton(text="🔙 Назад", callback_data="menu:main")]
+            InlineKeyboardButton(text="выбрать дату", callback_data="hist:pick"),
+            InlineKeyboardButton(text="сегодня", callback_data="hist:today")
+        ]
     ])

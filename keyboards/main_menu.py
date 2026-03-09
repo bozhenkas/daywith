@@ -1,16 +1,19 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
-BTN_MY_HABITS = "📋 Мои привычки"
-BTN_STATS = "📊 Статистика"
-BTN_HISTORY = "📅 История"
-BTN_SETTINGS = "⚙️ Настройки"
+BTN_MY_HABITS = "мои привычки"
+BTN_STATS = "статистика"
+BTN_HISTORY = "история"
+BTN_SETTINGS = "настройки"
 
-def get_main_menu_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=BTN_MY_HABITS, callback_data="menu:habits")],
-        [
-            InlineKeyboardButton(text=BTN_STATS, callback_data="menu:stats"),
-            InlineKeyboardButton(text=BTN_HISTORY, callback_data="menu:history")
+def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=BTN_MY_HABITS)],
+            [
+                KeyboardButton(text=BTN_STATS),
+                KeyboardButton(text=BTN_HISTORY)
+            ],
+            [KeyboardButton(text=BTN_SETTINGS)]
         ],
-        [InlineKeyboardButton(text=BTN_SETTINGS, callback_data="menu:settings")]
-    ])
+        resize_keyboard=True
+    )

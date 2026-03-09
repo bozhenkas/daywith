@@ -1,26 +1,25 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from typing import List
 
-BTN_ADD_HABIT = "➕ Добавить привычку"
-BTN_GOOD = "✅ Хорошая"
-BTN_BAD = "❌ Плохая"
-BTN_BACK = "🔙 Назад"
-BTN_SKIP = "⏭ Пропустить"
+BTN_ADD_HABIT = "+ добавить привычку"
+BTN_GOOD = "хорошая"
+BTN_BAD = "плохая"
+BTN_BACK = "назад"
+BTN_SKIP = "пропустить"
 
 def get_habits_list_keyboard(habits: List[dict]) -> InlineKeyboardMarkup:
     kb = []
     for h in habits:
-        icon = "✅" if h["type"] == "good" else "❌"
+        icon = "+" if h["type"] == "good" else "-"
         kb.append([InlineKeyboardButton(text=f"{icon} {h['name']}", callback_data=f"habit:edit:{h['_id']}")])
     kb.append([InlineKeyboardButton(text=BTN_ADD_HABIT, callback_data="habit:add")])
-    kb.append([InlineKeyboardButton(text=BTN_BACK, callback_data="menu:main")])
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 def get_habit_type_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text=BTN_GOOD, callback_data="htype:good"),
-            InlineKeyboardButton(text=BTN_BAD, callback_data="htype:bad")
+            InlineKeyboardButton(text=BTN_GOOD, callback_data="htype:good", **{"style": "success"} if True else {}),
+            InlineKeyboardButton(text=BTN_BAD, callback_data="htype:bad", **{"style": "danger"} if True else {})
         ],
         [InlineKeyboardButton(text=BTN_BACK, callback_data="habit:cancel_add")]
     ])
@@ -32,6 +31,6 @@ def get_skip_keyboard() -> InlineKeyboardMarkup:
 
 def get_habit_edit_keyboard(habit_id: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🗑 Удалить", callback_data=f"habit:del:{habit_id}")],
+        [InlineKeyboardButton(text="удалить", callback_data=f"habit:del:{habit_id}", **{"style": "danger"} if True else {})],
         [InlineKeyboardButton(text=BTN_BACK, callback_data="menu:habits")]
     ])

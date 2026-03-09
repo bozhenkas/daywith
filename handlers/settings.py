@@ -1,14 +1,15 @@
 from aiogram import Router, F
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 from config.messages_loader import get_msg
 from keyboards.settings_kb import get_settings_keyboard, get_time_preset_keyboard
 from services.habit_service import HabitService
 
 router = Router()
 
-@router.callback_query(F.data == "menu:settings")
-async def show_settings(callback: CallbackQuery, habit_service: HabitService):
-    user = await habit_service.repo.db.users.find_one({"telegram_id": callback.from_user.id})
+@router.message(F.text == "настройки")
+async def show_settings(message_or_callback, habit_service: HabitService):
+    user_id = message_or_callback.from_user.id
+    user = await habit_service.repo.db.users.find_one({"telegram_id": user_id})
     if not user:
         return
         
@@ -24,7 +25,10 @@ async def show_settings(callback: CallbackQuery, habit_service: HabitService):
         tz=user.get("timezone", "UTC")
     )
     
-    await callback.message.edit_text(text, reply_markup=get_settings_keyboard())
+    if isinstance(message_or_callback, Message):
+        await message_or_callback.answer(text, reply_markup=get_settings_keyboard())
+    else:
+        await message_or_callback.message.edit_text(text, reply_markup=get_settings_keyboard())
 
 @router.callback_query(F.data == "set:time")
 async def change_time(callback: CallbackQuery):

@@ -10,15 +10,15 @@ from services.habit_service import HabitService
 
 router = Router()
 
-@router.callback_query(F.data == "menu:habits")
-async def show_habits(callback: CallbackQuery, habit_service: HabitService):
-    habits = await habit_service.get_user_habits(callback.from_user.id)
+@router.message(F.text == "мои привычки")
+async def show_habits(message: Message, habit_service: HabitService):
+    habits = await habit_service.get_user_habits(message.from_user.id)
     text = get_msg("habits.list_header") if habits else get_msg("habits.list_empty")
-    await callback.message.edit_text(text, reply_markup=get_habits_list_keyboard(habits))
+    await message.answer(text, reply_markup=get_habits_list_keyboard(habits))
 
 @router.callback_query(F.data == "habit:add")
 async def start_add_habit(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text(get_msg("habits.add_prompt"))
+    await callback.message.answer(get_msg("habits.add_prompt"))
     await state.set_state(HabitStates.waiting_for_name)
 
 @router.message(HabitStates.waiting_for_name)
@@ -34,13 +34,13 @@ async def process_habit_name(message: Message, state: FSMContext):
 async def process_habit_type(callback: CallbackQuery, state: FSMContext, habit_service: HabitService):
     h_type = callback.data.split(":")[1]
     data = await state.get_data()
-    name = data.get("habit_name", "Без названия")
+    name = data.get("habit_name", "без названия")
     
     await habit_service.create_habit(callback.from_user.id, name, h_type, 7)
-    await state.clear()
     
+    # Stay in the loop
+    await state.set_state(HabitStates.waiting_for_name)
     await callback.message.edit_text(get_msg("habits.add_success", habit_name=name))
-    await callback.message.answer("Меню:", reply_markup=get_main_menu_keyboard())
 
 @router.callback_query(F.data.startswith("habit:edit:"))
 async def edit_habit(callback: CallbackQuery, habit_service: HabitService):
@@ -67,6 +67,6 @@ async def delete_habit(callback: CallbackQuery, habit_service: HabitService):
     await callback.message.edit_text(text, reply_markup=get_habits_list_keyboard(habits))
 
 @router.callback_query(F.data == "habit:cancel_add")
-async def cancel_add(callback: CallbackQuery, state: FSMContext, habit_service: HabitService):
+async def cancel_add(callback: CallbackQuery, state: FSMContext):
     await state.clear()
-    await show_habits(callback, habit_service)
+    await callback.message.edit_text("отменено.")

@@ -40,7 +40,16 @@ async def on_skip_habit(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(get_msg("start.skip_habit"))
     await callback.message.answer(get_msg("start.setup_complete"), reply_markup=get_main_menu_keyboard())
 
-@router.callback_query(F.data == "menu:main")
-async def on_main_menu(callback: CallbackQuery, state: FSMContext):
+@router.message(F.text == "назад")
+async def on_back_text(message: Message, state: FSMContext):
     await state.clear()
-    await callback.message.edit_text("Главное меню:", reply_markup=get_main_menu_keyboard())
+    await message.answer("главное меню:", reply_markup=get_main_menu_keyboard())
+
+@router.message(F.text == "главное меню:")
+@router.callback_query(F.data == "menu:main")
+async def on_main_menu(callback_or_message, state: FSMContext):
+    await state.clear()
+    if isinstance(callback_or_message, CallbackQuery):
+        await callback_or_message.message.answer("главное меню:", reply_markup=get_main_menu_keyboard())
+    else:
+        await callback_or_message.answer("главное меню:", reply_markup=get_main_menu_keyboard())
