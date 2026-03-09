@@ -4,7 +4,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
+    gcc libfreetype6-dev libjpeg-dev zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir -r requirements.txt
