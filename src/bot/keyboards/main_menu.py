@@ -15,11 +15,13 @@ def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
             ],
             [KeyboardButton(text=BTN_SETTINGS)]
         ],
-        resize_keyboard=True
+        resize_keyboard=True,
+        is_persistent=True
     )
 
 def get_back_reply_keyboard() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[[KeyboardButton(text="назад ↵")]],
-        resize_keyboard=True
+        resize_keyboard=True,
+        is_persistent=True
     )

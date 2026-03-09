@@ -72,6 +72,18 @@ async def delete_habit(callback: CallbackQuery, habit_service: HabitService):
     text = get_msg("habits.list_header") if habits else get_msg("habits.list_empty")
     await callback.message.edit_text(text, reply_markup=get_habits_list_keyboard(habits))
 
+@router.callback_query(F.data.startswith("habit:page:"))
+async def habits_page(callback: CallbackQuery, habit_service: HabitService):
+    await callback.answer()
+    page = int(callback.data.split(":")[2])
+    habits = await habit_service.get_user_habits(callback.from_user.id)
+    text = get_msg("habits.list_header") if habits else get_msg("habits.list_empty")
+    await callback.message.edit_text(text, reply_markup=get_habits_list_keyboard(habits, page))
+
+@router.callback_query(F.data == "habit:noop")
+async def noop_habit(callback: CallbackQuery):
+    await callback.answer()
+
 @router.callback_query(F.data == "habit:cancel_add")
 async def cancel_add(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
