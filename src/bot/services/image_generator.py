@@ -108,8 +108,15 @@ class StatsImageGenerator:
         month = get_russian_month()
         font_60 = self._get_font(60)
         
+        # Vertical Centering Calculation:
+        # Block 1 height: 60 (label) + 20 (gap) + 60 (value) = 140px
+        # Block 2 height: 60 (label) + 20 (gap) + 60 (value) = 140px
+        # Existing gap between blocks: 130px (from 410 and 680 starts: 680 - (410 + 140) = 130)
+        # Total group height: 140 + 130 + 140 = 410px
+        # Target start Y for centering: (1024 - 410) / 2 = 307px
+        
         # Monthly Block
-        base_x, base_y = 60, 410
+        base_x, base_y = 60, 307 
         container_w = 626
         
         # "за месяц (месяц)"
@@ -119,7 +126,7 @@ class StatsImageGenerator:
         self._draw_text_with_spacing(draw, (base_x, base_y + 60 + 20), f"успешность – {rate:.0f}%", font_60, "#127475", -4, align="right", container_width=container_w)
 
         # Best Habit Block
-        base_x, base_y = 60, 680
+        base_x, base_y = 60, 577 # 307 (start) + 140 (block 1) + 130 (gap) = 577
         container_w = 648
         
         # "лучшая привычка"
