@@ -1,9 +1,9 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, BufferedInputFile
-from config.messages_loader import get_msg
-from services.statistics_service import StatisticsService
-from services.image_generator import StatsImageGenerator
-from services.habit_service import HabitService
+from bot.config.messages_loader import get_msg
+from bot.services.statistics_service import StatisticsService
+from bot.services.image_generator import StatsImageGenerator
+from bot.services.habit_service import HabitService
 
 router = Router()
 
@@ -31,6 +31,6 @@ async def show_statistics(callback: CallbackQuery, stats_service: StatisticsServ
     
     photo = BufferedInputFile(img_bytes, filename="stats.jpg")
     
-    from keyboards.main_menu import get_main_menu_keyboard
+    from bot.keyboards.main_menu import get_main_menu_keyboard
     await callback.message.delete()
     await callback.message.answer_photo(photo, caption="Твоя статистика!", reply_markup=get_main_menu_keyboard())

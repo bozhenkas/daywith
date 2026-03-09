@@ -7,9 +7,9 @@ class MessageManager:
 
     @classmethod
     def load(cls) -> None:
-        yaml_path = Path("config/messages.yaml")
+        yaml_path = Path("src/bot/messages.yaml")
         if not yaml_path.exists():
-            raise FileNotFoundError("config/messages.yaml file is missing.")
+            raise FileNotFoundError("src/bot/messages.yaml file is missing.")
         
         with open(yaml_path, "r", encoding="utf-8") as file:
             cls._messages = yaml.safe_load(file) or {}

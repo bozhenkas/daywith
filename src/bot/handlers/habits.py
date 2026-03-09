@@ -2,11 +2,11 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 
-from config.messages_loader import get_msg
-from keyboards.habits_kb import get_habits_list_keyboard, get_habit_type_keyboard, get_habit_edit_keyboard
-from keyboards.main_menu import get_main_menu_keyboard, get_back_reply_keyboard
-from fsm.states import HabitStates, OnboardingStates
-from services.habit_service import HabitService
+from bot.config.messages_loader import get_msg
+from bot.keyboards.habits_kb import get_habits_list_keyboard, get_habit_type_keyboard, get_habit_edit_keyboard
+from bot.keyboards.main_menu import get_main_menu_keyboard, get_back_reply_keyboard
+from bot.fsm.states import HabitStates, OnboardingStates
+from bot.services.habit_service import HabitService
 
 router = Router()
 
@@ -55,8 +55,7 @@ async def edit_habit(callback: CallbackQuery, habit_service: HabitService):
         await callback.answer(get_msg("errors.not_found"), show_alert=True)
         return
         
-    icon = "🟢" if h["type"] == "good" else "🔴"
-    text = get_msg("habits.habit_info", icon=icon, name=h["name"], goal=h["goal_count"])
+    text = get_msg("habits.habit_info", icon="", name=h["name"], goal=h["goal_count"]).strip()
     await callback.message.edit_text(text, reply_markup=get_habit_edit_keyboard(h_id))
 
 @router.callback_query(F.data.startswith("habit:del:"))

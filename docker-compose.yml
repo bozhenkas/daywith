@@ -7,6 +7,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./generated_images:/app/generated_images
+      - ./src:/app/src
 
   mongodb:
     image: mirror.gcr.io/library/mongo:7.0

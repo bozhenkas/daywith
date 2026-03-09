@@ -1,9 +1,9 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message
-from config.messages_loader import get_msg
-from keyboards.settings_kb import get_settings_keyboard, get_time_preset_keyboard
-from keyboards.main_menu import get_back_reply_keyboard
-from services.habit_service import HabitService
+from bot.config.messages_loader import get_msg
+from bot.keyboards.settings_kb import get_settings_keyboard, get_time_preset_keyboard
+from bot.keyboards.main_menu import get_back_reply_keyboard
+from bot.services.habit_service import HabitService
 from aiogram.fsm.context import FSMContext
 
 router = Router()

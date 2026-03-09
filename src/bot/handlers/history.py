@@ -2,11 +2,11 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message
 from datetime import datetime
 
-from config.messages_loader import get_msg
-from keyboards.history_kb import get_date_navigation_keyboard
-from keyboards.main_menu import get_back_reply_keyboard
-from services.habit_service import HabitService
-from utils.date_utils import parse_date_str
+from bot.config.messages_loader import get_msg
+from bot.keyboards.history_kb import get_date_navigation_keyboard
+from bot.keyboards.main_menu import get_back_reply_keyboard
+from bot.services.habit_service import HabitService
+from bot.utils.date_utils import parse_date_str
 from aiogram.fsm.context import FSMContext
 
 router = Router()

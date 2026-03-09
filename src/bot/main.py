@@ -5,13 +5,13 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from config.settings import load_settings
-from config.messages_loader import MessageManager
+from bot.config.settings import load_settings
+from bot.config.messages_loader import MessageManager
 from database.mongo import MongoRepo
-from services.habit_service import HabitService
-from services.statistics_service import StatisticsService
-from services.scheduler import DigestScheduler
-from handlers import get_routers
+from bot.services.habit_service import HabitService
+from bot.services.statistics_service import StatisticsService
+from bot.services.scheduler import DigestScheduler
+from bot.handlers import get_routers
 
 async def inject_services(handler, event, data):
     data['habit_service'] = data.get('habit_service')

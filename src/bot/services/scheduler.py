@@ -1,6 +1,6 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram import Bot
-from config.messages_loader import get_msg
+from bot.config.messages_loader import get_msg
 from datetime import datetime
 
 class DigestScheduler:
@@ -24,7 +24,7 @@ class DigestScheduler:
         
         date_str = datetime.utcnow().strftime("%Y-%m-%d")
         
-        from keyboards.daily_kb import get_daily_check_keyboard
+        from bot.keyboards.daily_kb import get_daily_check_keyboard
         
         for u in users:
             habits = await self.habit_service.get_user_habits(u["telegram_id"])

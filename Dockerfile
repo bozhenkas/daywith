@@ -11,6 +11,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN mkdir -p /app/generated_images
+ENV PYTHONPATH="/app/src"
 
-CMD ["python", "bot.py"]
+CMD ["python", "-m", "bot.main"]

@@ -2,9 +2,9 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from datetime import datetime
 
-from config.messages_loader import get_msg
-from keyboards.daily_kb import get_daily_check_keyboard
-from services.habit_service import HabitService
+from bot.config.messages_loader import get_msg
+from bot.keyboards.daily_kb import get_daily_check_keyboard
+from bot.services.habit_service import HabitService
 
 router = Router()
 
