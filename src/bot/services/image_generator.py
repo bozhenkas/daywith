@@ -58,44 +58,67 @@ class StatsImageGenerator:
         print("WARNING: Could not load Inter font, falling back to default")
         return ImageFont.load_default()
 
-    def _draw_text_with_spacing(self, draw: ImageDraw, position: tuple, text: str, font, fill: str, spacing_percent: float = -0.04):
-        x, y = position
-        for char in text:
-            draw.text((x, y), char, font=font, fill=fill)
+    def _draw_text_with_spacing(self, draw: ImageDraw, position: tuple, text: str, font, fill: str, spacing_px: float, align="left", container_width=0):
+        text = text.lower()
+        # Calculate width for alignment
+        chars = list(text)
+        widths = []
+        for char in chars:
             try:
-                char_width = font.getlength(char)
+                widths.append(font.getlength(char))
             except:
-                char_width = 10 
-            x += char_width * (1 + spacing_percent)
-        return x
+                widths.append(font.size * 0.5)
+        
+        total_text_width = sum(widths) + (len(chars) - 1) * spacing_px
+        
+        start_x, y = position
+        if align == "right" and container_width > 0:
+            start_x = start_x + container_width - total_text_width
+            
+        current_x = start_x
+        for i, char in enumerate(chars):
+            draw.text((current_x, y), char, font=font, fill=fill)
+            current_x += widths[i] + spacing_px
+        return total_text_width
 
     def _draw_header(self, draw: ImageDraw, user_data: dict):
         username = user_data.get("username", "user") if user_data else "user"
-        font_title = self._get_font(88)
-        font_tag = self._get_font(32)
+        font_80 = self._get_font(80)
+        font_32 = self._get_font(32)
         
-        # Position from Figma: "статистика" top-leftish
-        self._draw_text_with_spacing(draw, (55, 140), "статистика", font_title, "#333333")
-        # "for @username" smaller
-        self._draw_text_with_spacing(draw, (230, 240), f"for @{username}", font_tag, "#333333")
+        # Container start
+        base_x, base_y = 60, 140
+        container_w = 648
+        
+        # "статистика"
+        self._draw_text_with_spacing(draw, (base_x, base_y), "статистика", font_80, "#2A2D43", -4)
+        
+        # "for @username" - gap 20px, right aligned
+        self._draw_text_with_spacing(draw, (base_x, base_y + 80 + 20), f"for @{username}", font_32, "#2A2D43", -2.238, align="right", container_width=container_w)
 
     def _draw_stats_summary(self, draw: ImageDraw, stats: dict):
         rate = stats.get("completion_rate", 0)
         month = get_russian_month()
+        font_60 = self._get_font(60)
         
-        font_label = self._get_font(64)
-        font_value = self._get_font(64)
+        # Monthly Block
+        base_x, base_y = 60, 410
+        container_w = 626
         
-        # Block: Monthly progress
-        self._draw_text_with_spacing(draw, (55, 410), f"за месяц ({month})", font_label, "#333333")
-        self._draw_text_with_spacing(draw, (180, 480), f"успешность — {rate:.0f}%", font_value, "#169D8B")
+        # "за месяц (месяц)"
+        self._draw_text_with_spacing(draw, (base_x, base_y), f"за месяц ({month})", font_60, "#2A2D43", -4)
+        
+        # "успешность – x%" - gap 20px, right aligned
+        self._draw_text_with_spacing(draw, (base_x, base_y + 60 + 20), f"успешность – {rate:.0f}%", font_60, "#127475", -4, align="right", container_width=container_w)
 
-        # Block: Best habit
-        self._draw_text_with_spacing(draw, (55, 680), "лучшая привычка", font_label, "#333333")
+        # Best Habit Block
+        base_x, base_y = 60, 680
+        container_w = 648
+        
+        # "лучшая привычка"
+        self._draw_text_with_spacing(draw, (base_x, base_y), "лучшая привычка", font_60, "#2A2D43", -4)
         
         best = stats.get("best_habit")
-        if best:
-            best_name = best.get("name", "без названия")
-            self._draw_text_with_spacing(draw, (280, 750), best_name, font_value, "#EE6C4D")
-        else:
-            self._draw_text_with_spacing(draw, (280, 750), "нет данных", font_value, "#EE6C4D")
+        val_text = best.get("name") if best else "нет данных"
+        # Best habit name - gap 20px, right aligned
+        self._draw_text_with_spacing(draw, (base_x, base_y + 60 + 20), val_text, font_60, "#DD614A", -4, align="right", container_width=container_w)
