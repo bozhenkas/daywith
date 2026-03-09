@@ -17,3 +17,9 @@ def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
         ],
         resize_keyboard=True
     )
+
+def get_back_reply_keyboard() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="назад ↵")]],
+        resize_keyboard=True
+    )

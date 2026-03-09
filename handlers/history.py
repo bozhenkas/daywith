@@ -4,28 +4,38 @@ from datetime import datetime
 
 from config.messages_loader import get_msg
 from keyboards.history_kb import get_date_navigation_keyboard
+from keyboards.main_menu import get_back_reply_keyboard
 from services.habit_service import HabitService
 from utils.date_utils import parse_date_str
+from aiogram.fsm.context import FSMContext
 
 router = Router()
 
 @router.message(F.text == "история")
-async def show_history_today(message: Message, habit_service: HabitService):
+async def show_history_today(message: Message, habit_service: HabitService, state: FSMContext):
+    msg1 = await message.answer("ℹ", reply_markup=get_back_reply_keyboard())
     today = datetime.utcnow()
-    await _render_history(message, today, habit_service)
+    await _render_history(message, today, habit_service, state=state, msg1=msg1)
 
 @router.callback_query(F.data.startswith("hist:prev:"))
 @router.callback_query(F.data.startswith("hist:next:"))
 async def navigate_history(callback: CallbackQuery, habit_service: HabitService):
+    await callback.answer()
     date_str = callback.data.split(":")[2]
     d = parse_date_str(date_str)
     await _render_history(callback, d, habit_service)
 
 @router.callback_query(F.data == "hist:today")
 async def navigate_today(callback: CallbackQuery, habit_service: HabitService):
+    await callback.answer()
     await _render_history(callback, datetime.utcnow(), habit_service)
 
-async def _render_history(event, target_date: datetime, habit_service: HabitService):
+@router.callback_query(F.data == "hist:noop")
+@router.callback_query(F.data == "hist:pick")
+async def noop_history(callback: CallbackQuery):
+    await callback.answer()
+
+async def _render_history(event, target_date: datetime, habit_service: HabitService, state: FSMContext = None, msg1: Message = None):
     user_id = event.from_user.id
     date_str = target_date.strftime("%Y-%m-%d")
     logs = await habit_service.get_daily_logs(user_id, date_str)
@@ -48,6 +58,10 @@ async def _render_history(event, target_date: datetime, habit_service: HabitServ
     kb = get_date_navigation_keyboard(target_date)
     
     if hasattr(event, "message") and event.message:
-        await event.message.edit_text(text, reply_markup=kb)
+        msg2 = await event.message.edit_text(text, reply_markup=kb)
+        if state and msg1:
+            await state.update_data(menu_msg_ids=[msg1.message_id, msg2.message_id])
     else:
-        await event.answer(text, reply_markup=kb)
+        msg2 = await event.answer(text, reply_markup=kb)
+        if state and msg1:
+            await state.update_data(menu_msg_ids=[msg1.message_id, msg2.message_id])

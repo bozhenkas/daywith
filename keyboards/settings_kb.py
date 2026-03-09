@@ -7,9 +7,9 @@ BTN_TIME_22 = "22:00"
 def get_time_preset_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text=BTN_TIME_09, callback_data="time:09:00", **{"style": "primary"} if True else {}),
-            InlineKeyboardButton(text=BTN_TIME_21, callback_data="time:21:00", **{"style": "primary"} if True else {}),
-            InlineKeyboardButton(text=BTN_TIME_22, callback_data="time:22:00", **{"style": "primary"} if True else {})
+            InlineKeyboardButton(text=BTN_TIME_09, callback_data="time:09:00"),
+            InlineKeyboardButton(text=BTN_TIME_21, callback_data="time:21:00"),
+            InlineKeyboardButton(text=BTN_TIME_22, callback_data="time:22:00")
         ]
     ])
 

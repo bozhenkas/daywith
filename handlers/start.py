@@ -9,6 +9,7 @@ from keyboards.settings_kb import get_time_preset_keyboard
 from keyboards.habits_kb import get_skip_keyboard
 from fsm.states import OnboardingStates
 from services.habit_service import HabitService
+from aiogram import Bot
 
 router = Router()
 
@@ -36,20 +37,39 @@ async def on_time_selected(callback: CallbackQuery, state: FSMContext, habit_ser
 
 @router.callback_query(OnboardingStates.adding_first_habit, F.data == "setup:skip")
 async def on_skip_habit(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
     await state.clear()
     await callback.message.edit_text(get_msg("start.skip_habit"))
     await callback.message.answer(get_msg("start.setup_complete"), reply_markup=get_main_menu_keyboard())
 
 @router.message(F.text == "назад")
-async def on_back_text(message: Message, state: FSMContext):
+@router.message(F.text == "назад ↵")
+async def on_back_text(message: Message, state: FSMContext, bot: Bot):
+    await _clean_menus(message, state, bot)
     await state.clear()
     await message.answer("главное меню:", reply_markup=get_main_menu_keyboard())
 
+async def _clean_menus(message: Message, state: FSMContext, bot: Bot):
+    data = await state.get_data()
+    msg_ids = data.get("menu_msg_ids", [])
+    for m in msg_ids:
+        try:
+            await bot.delete_message(message.chat.id, m)
+        except Exception:
+            pass
+    try:
+        await message.delete()
+    except Exception:
+        pass
+
 @router.message(F.text == "главное меню:")
 @router.callback_query(F.data == "menu:main")
-async def on_main_menu(callback_or_message, state: FSMContext):
+async def on_main_menu(callback_or_message, state: FSMContext, bot: Bot):
     await state.clear()
     if isinstance(callback_or_message, CallbackQuery):
+        await callback_or_message.answer()
         await callback_or_message.message.answer("главное меню:", reply_markup=get_main_menu_keyboard())
     else:
+        # If it's a message, process cleanups just in case
+        await _clean_menus(callback_or_message, state, bot)
         await callback_or_message.answer("главное меню:", reply_markup=get_main_menu_keyboard())
