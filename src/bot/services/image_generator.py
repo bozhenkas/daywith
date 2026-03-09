@@ -8,6 +8,7 @@ class StatsImageGenerator:
     WIDTH = 768
     HEIGHT = 1024
     FONT_FILENAME = "Inter-Regular.ttf"
+    FONT_ITALIC_FILENAME = "Inter-Italic.ttf"
     BG_FILENAME = "stat_bg.jpg"
 
     def generate(self, user_data: dict, stats: dict) -> bytes:
@@ -47,14 +48,23 @@ class StatsImageGenerator:
                 return p
         return None
 
-    def _get_font(self, size: int):
-        font_path = self._get_file_path("assets", self.FONT_FILENAME)
-        if font_path:
-            try:
-                return ImageFont.truetype(font_path, size)
-            except Exception as e:
-                print(f"Error loading font {font_path}: {e}")
+    def _get_font(self, size: int, italic=True):
+        # Prefer italic if requested
+        filenames = [self.FONT_ITALIC_FILENAME, self.FONT_FILENAME] if italic else [self.FONT_FILENAME]
         
+        for filename in filenames:
+            font_path = self._get_file_path("assets", filename)
+            if font_path:
+                try:
+                    return ImageFont.truetype(font_path, size)
+                except Exception as e:
+                    print(f"Error loading font {font_path}: {e}")
+        
+        # Fallback to variable font if exists
+        v_path = self._get_file_path("assets", "Inter-Variable.ttf")
+        if v_path:
+             return ImageFont.truetype(v_path, size)
+
         print("WARNING: Could not load Inter font, falling back to default")
         return ImageFont.load_default()
 
@@ -83,11 +93,11 @@ class StatsImageGenerator:
 
     def _draw_header(self, draw: ImageDraw, user_data: dict):
         username = user_data.get("username", "user") if user_data else "user"
-        font_80 = self._get_font(80)
-        font_32 = self._get_font(32)
+        font_80 = self._get_font(80, italic=True)
+        font_32 = self._get_font(32, italic=True)
         
         # Container start
-        base_x, base_y = 60, 140
+        base_x, base_y = 60, 60
         container_w = 648
         
         # "статистика"
@@ -99,7 +109,7 @@ class StatsImageGenerator:
     def _draw_stats_summary(self, draw: ImageDraw, stats: dict):
         rate = stats.get("completion_rate", 0)
         month = get_russian_month()
-        font_60 = self._get_font(60)
+        font_60 = self._get_font(60, italic=True)
         
         # Monthly Block
         base_x, base_y = 60, 410
