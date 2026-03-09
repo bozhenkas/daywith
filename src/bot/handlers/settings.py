@@ -28,7 +28,7 @@ async def show_settings(message_or_callback, habit_service: HabitService, state:
     )
     
     if isinstance(message_or_callback, Message):
-        msg1 = await message_or_callback.answer("ℹ", reply_markup=get_back_reply_keyboard())
+        msg1 = await message_or_callback.answer(get_msg("habits.info_emoji"), reply_markup=get_back_reply_keyboard(), disable_notification=True)
         msg2 = await message_or_callback.answer(text, reply_markup=get_settings_keyboard())
         if state:
             await state.update_data(menu_msg_ids=[msg1.message_id, msg2.message_id])
@@ -38,7 +38,7 @@ async def show_settings(message_or_callback, habit_service: HabitService, state:
 @router.callback_query(F.data == "set:time")
 async def change_time(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_text("Выбери новое время:", reply_markup=get_time_preset_keyboard())
+    await callback.message.edit_text(get_msg("start.restart_onboarding"), reply_markup=get_time_preset_keyboard())
 
 @router.callback_query(F.data == "set:notif")
 async def toggle_notif(callback: CallbackQuery, habit_service: HabitService):

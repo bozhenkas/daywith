@@ -4,6 +4,8 @@ import io
 class StatsImageGenerator:
     WIDTH = 1080
     HEIGHT = 1920
+    # Inside container path
+    FONT_PATH = "assets/fonts/Inter-Variable.ttf"
 
     def generate(self, user_data: dict, stats: dict) -> bytes:
         img = Image.new('RGB', (self.WIDTH, self.HEIGHT), '#1E1E1E')
@@ -16,16 +18,55 @@ class StatsImageGenerator:
         img.save(img_byte_arr, format='JPEG')
         return img_byte_arr.getvalue()
 
+    def _get_font(self, size: int):
+        import os
+        # Try both relative to app root and absolute for robustness
+        paths = [
+            self.FONT_PATH,
+            os.path.join(os.getcwd(), self.FONT_PATH),
+            os.path.join(os.path.dirname(__file__), "../../../", self.FONT_PATH)
+        ]
+        for p in paths:
+            if os.path.exists(p):
+                try:
+                    return ImageFont.truetype(p, size)
+                except:
+                    continue
+        return ImageFont.load_default()
+
+    def _draw_text_with_spacing(self, draw: ImageDraw, position: tuple, text: str, font, fill: str, spacing_percent: float = -0.04):
+        x, y = position
+        for char in text:
+            draw.text((x, y), char, font=font, fill=fill)
+            # Calculate width and apply negative spacing
+            try:
+                char_width = font.getlength(char)
+            except:
+                char_width = 10 # fallback
+            x += char_width * (1 + spacing_percent)
+
     def _draw_header(self, draw: ImageDraw, user_data: dict):
-        username = user_data.get("username", "User")
-        draw.text((100, 150), f"Davis Tracker", fill="#FFFFFF", font_size=80)
-        draw.text((100, 250), f"@{username}", fill="#9E9E9E", font_size=50)
+        username = user_data.get("username", "user") if user_data else "user"
+        font_main = self._get_font(120)
+        font_sub = self._get_font(70)
+        
+        self._draw_text_with_spacing(draw, (100, 200), "day with...", font_main, "#FFFFFF")
+        self._draw_text_with_spacing(draw, (100, 320), f"@{username}", font_sub, "#9E9E9E")
 
     def _draw_stats_summary(self, draw: ImageDraw, stats: dict):
         rate = stats.get("completion_rate", 0)
-        draw.text((100, 450), "Статистика за месяц", fill="#FFFFFF", font_size=60)
-        draw.text((100, 550), f"Успешность: {rate:.1f}%", fill="#4CAF50", font_size=50)
+        font_title = self._get_font(90)
+        font_stat = self._get_font(70)
+        
+        self._draw_text_with_spacing(draw, (100, 600), "Статистика за месяц", font_title, "#FFFFFF")
+        self._draw_text_with_spacing(draw, (100, 720), f"Успешность: {rate:.1f}%", font_stat, "#4CAF50")
 
         best = stats.get("best_habit")
         if best:
-            draw.text((100, 650), f"Лучшая привычка:\n{best['name']} ({best['streak']}🔥)", fill="#FF9800", font_size=50)
+            best_name = best.get("name", "без названия")
+            streak = best.get("streak", 0)
+            self._draw_text_with_spacing(draw, (100, 900), "лучшая привычка:", font_stat, "#9E9E9E")
+            self._draw_text_with_spacing(draw, (100, 990), f"{best_name} ({streak}🔥)", font_stat, "#FF9800")
+        else:
+            self._draw_text_with_spacing(draw, (100, 900), "лучшая привычка:", font_stat, "#9E9E9E")
+            self._draw_text_with_spacing(draw, (100, 990), "нет данных", font_stat, "#FF9800")

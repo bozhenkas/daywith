@@ -12,7 +12,7 @@ router = Router()
 
 @router.message(F.text == "мои привычки")
 async def show_habits(message: Message, habit_service: HabitService, state: FSMContext):
-    msg1 = await message.answer("ℹ", reply_markup=get_back_reply_keyboard())
+    msg1 = await message.answer(get_msg("habits.info_emoji"), reply_markup=get_back_reply_keyboard(), disable_notification=True)
     habits = await habit_service.get_user_habits(message.from_user.id)
     text = get_msg("habits.list_header") if habits else get_msg("habits.list_empty")
     msg2 = await message.answer(text, reply_markup=get_habits_list_keyboard(habits))
@@ -38,7 +38,7 @@ async def process_habit_type(callback: CallbackQuery, state: FSMContext, habit_s
     await callback.answer()
     h_type = callback.data.split(":")[1]
     data = await state.get_data()
-    name = data.get("habit_name", "без названия")
+    name = data.get("habit_name", get_msg("habits.unknown_name"))
     
     await habit_service.create_habit(callback.from_user.id, name, h_type, 7)
     
@@ -55,7 +55,7 @@ async def edit_habit(callback: CallbackQuery, habit_service: HabitService):
         await callback.answer(get_msg("errors.not_found"), show_alert=True)
         return
         
-    text = get_msg("habits.habit_info", icon="", name=h["name"], goal=h["goal_count"]).strip()
+    text = get_msg("habits.habit_info", icon="", name=h["name"]).strip()
     await callback.message.edit_text(text, reply_markup=get_habit_edit_keyboard(h_id))
 
 @router.callback_query(F.data.startswith("habit:del:"))
@@ -88,4 +88,4 @@ async def noop_habit(callback: CallbackQuery):
 async def cancel_add(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await state.clear()
-    await callback.message.edit_text("отменено.")
+    await callback.message.edit_text(get_msg("habits.canceled"))

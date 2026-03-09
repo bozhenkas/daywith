@@ -8,24 +8,60 @@ class HabitService:
     def __init__(self, db_repo: MongoRepo):
         self.repo = db_repo
 
-    async def get_or_create_user(self, tg_id: int, username: str, first_name: str) -> dict:
+    async def get_or_create_user(self, tg_id: int, username: str, first_name: str, last_name: str = None, lang_code: str = None, is_premium: bool = None) -> dict:
         user = await self.repo.db.users.find_one({"telegram_id": tg_id})
+        now = datetime.utcnow()
         if not user:
             new_user = UserData(
                 telegram_id=tg_id,
                 username=username,
                 first_name=first_name,
-                created_at=datetime.utcnow(),
-                last_active=datetime.utcnow()
+                last_name=last_name,
+                language_code=lang_code,
+                is_premium=is_premium,
+                created_at=now,
+                last_active=now
             )
             res = await self.repo.db.users.insert_one(new_user.model_dump(by_alias=True, exclude={"id"}))
             return await self.repo.db.users.find_one({"_id": res.inserted_id})
         else:
+            update_data = {
+                "last_active": now,
+                "username": username,
+                "first_name": first_name,
+                "last_name": last_name,
+                "language_code": lang_code,
+                "is_premium": is_premium
+            }
             await self.repo.db.users.update_one(
                 {"telegram_id": tg_id},
-                {"$set": {"last_active": datetime.utcnow()}}
+                {"$set": update_data}
             )
             return user
+
+    async def reset_user_data(self, user_id: int):
+        # Move habits to backup
+        habits = await self.repo.db.habits.find({"user_id": user_id}).to_list(None)
+        if habits:
+            for h in habits:
+                h["reset_at"] = datetime.utcnow()
+            await self.repo.db.backup_habits.insert_many(habits)
+            await self.repo.db.habits.delete_many({"user_id": user_id})
+
+        # Move logs to backup
+        logs = await self.repo.db.daily_logs.find({"user_id": user_id}).to_list(None)
+        if logs:
+            for l in logs:
+                l["reset_at"] = datetime.utcnow()
+            await self.repo.db.backup_logs.insert_many(logs)
+            await self.repo.db.daily_logs.delete_many({"user_id": user_id})
+        
+        # Reset user digest status but keep settings? 
+        # User requested "reset everything", usually implies starting fresh with onboarding.
+        await self.repo.db.users.update_one(
+            {"telegram_id": user_id},
+            {"$set": {"digest_time": "21:00", "notifications_enabled": True}}
+        )
 
     async def update_user_time(self, tg_id: int, new_time: str):
         await self.repo.db.users.update_one({"telegram_id": tg_id}, {"$set": {"digest_time": new_time}})

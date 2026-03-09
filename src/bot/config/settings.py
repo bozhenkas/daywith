@@ -4,7 +4,7 @@ class Settings(BaseSettings):
     bot_token: str
     mongo_uri: str
     mongo_db_name: str
-    timezone: str = "UTC"
+    timezone: str = "Europe/Moscow"
     log_level: str = "INFO"
 
     model_config = SettingsConfigDict(

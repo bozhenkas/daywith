@@ -13,7 +13,7 @@ router = Router()
 
 @router.message(F.text == "история")
 async def show_history_today(message: Message, habit_service: HabitService, state: FSMContext):
-    msg1 = await message.answer("ℹ", reply_markup=get_back_reply_keyboard())
+    msg1 = await message.answer(get_msg("habits.info_emoji"), reply_markup=get_back_reply_keyboard(), disable_notification=True)
     today = datetime.utcnow()
     await _render_history(message, today, habit_service, state=state, msg1=msg1)
 
@@ -39,7 +39,7 @@ async def _render_history(event, target_date: datetime, habit_service: HabitServ
     user_id = event.from_user.id
     date_str = target_date.strftime("%Y-%m-%d")
     logs = await habit_service.get_daily_logs(user_id, date_str)
-    habits = await habit_service.get_user_habits(user_id, active_only=False)
+    habits = await habit_service.get_user_habits(user_id, active_only=True)
     
     lines = [get_msg("history.header", date=date_str), ""]
     
@@ -48,11 +48,11 @@ async def _render_history(event, target_date: datetime, habit_service: HabitServ
     for h in habits:
         h_id = str(h["_id"])
         if h_id in logs_map:
-            status = "✓ выполнено" if logs_map[h_id] else "✗ пропущено"
+            status = get_msg("history.done") if logs_map[h_id] else get_msg("history.skipped")
             lines.append(f"{h['name']} - {status}")
         else:
             if not h["archived"] or h["created_at"].strftime("%Y-%m-%d") <= date_str:
-                lines.append(f"{h['name']} - ⚪️ нет данных")
+                lines.append(f"{h['name']} - {get_msg('history.no_data')}")
             
     text = "\n".join(lines)
     kb = get_date_navigation_keyboard(target_date)

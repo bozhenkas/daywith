@@ -26,8 +26,11 @@ class UserData(BaseModel):
     telegram_id: int
     username: Optional[str] = None
     first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    language_code: Optional[str] = None
+    is_premium: Optional[bool] = None
     digest_time: str = "21:00"
-    timezone: str = "UTC"
+    timezone: str = "Europe/Moscow"
     notifications_enabled: bool = True
     language: str = "ru"
     created_at: datetime
