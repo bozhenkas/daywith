@@ -1,0 +1,21 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+BTN_TIME_09 = "09:00"
+BTN_TIME_21 = "21:00"
+BTN_TIME_22 = "22:00"
+
+def get_time_preset_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text=BTN_TIME_09, callback_data="time:09:00"),
+            InlineKeyboardButton(text=BTN_TIME_21, callback_data="time:21:00"),
+            InlineKeyboardButton(text=BTN_TIME_22, callback_data="time:22:00")
+        ]
+    ])
+
+def get_settings_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⏰ Изменить время", callback_data="set:time")],
+        [InlineKeyboardButton(text="🔔 Вкл/Выкл уведомления", callback_data="set:notif")],
+        [InlineKeyboardButton(text="🔙 Назад", callback_data="menu:main")]
+    ])

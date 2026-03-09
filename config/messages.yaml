@@ -1,0 +1,41 @@
+start:
+  welcome: "Привет, я твой трекер привычек.\nДля начала выбери, во сколько тебе удобно получать ежедневный дайджест:"
+  time_invalid: "Неверный формат времени. Выбери из кнопок или введи в формате ЧЧ:ММ"
+  time_set: "Дайджест установлен на {time}. Теперь давай добавим первую привычку:"
+  skip_habit: "Хорошо, привычки можно добавить позже. Я готов к работе!"
+  setup_complete: "Отлично, первоначальная настройка завершена."
+  already_registered: "С возвращением! Главное меню перед тобой."
+
+habits:
+  add_prompt: "Введи название привычки:"
+  choose_type: "Какого типа эта привычка?"
+  choose_goal: "Как часто хочешь ее отмечать? (в неделю)"
+  add_success: "Привычка '{habit_name}' добавлена"
+  list_empty: "У тебя пока нет привычек"
+  list_header: "Твои привычки:"
+  habit_info: "{icon} {name}\nЦель: {goal}"
+  archived: "Привычка '{habit_name}' удалена."
+
+daily:
+  digest_header: "Отметь привычки за {date}:"
+  habit_marked: "Привычки отмечены"
+  digest_empty: "На сегодня нет активных привычек."
+
+statistics:
+  title: "Статистика за {period}"
+  loading: "Генерирую статистику..."
+  
+history:
+  pick_date_prompt: "Выбери день:"
+  header: "История за {date}:"
+
+settings:
+  menu: "Настройки:\nВремя: {time}\nУведомления: {notify}\nЯзык: {lang}\nЧасовой пояс: {tz}"
+  time_updated: "Время изменено на {time}"
+  notifications_on: "Включены"
+  notifications_off: "Выключены"
+  notifs_updated: "Уведомления {status}"
+
+errors:
+  general: "Что-то пошло не так"
+  not_found: "Не найдено."
