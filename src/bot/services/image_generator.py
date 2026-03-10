@@ -1,147 +1,86 @@
-from PIL import Image, ImageDraw, ImageFont
-import io
 import os
-from bot.utils.date_utils import get_russian_month
+import logging
+from PIL import Image, ImageDraw, ImageFont
+from datetime import datetime, timedelta
 
-class StatsImageGenerator:
-    # New dimensions based on stat_bg.jpg (768x1024)
-    WIDTH = 768
-    HEIGHT = 1024
-    FONT_FILENAME = "Inter-VariableFont_slnt,wght.ttf"
-    BG_FILENAME = "stat_bg.jpg"
+logger = logging.getLogger(__name__)
 
-    def generate(self, user_data: dict, stats: dict) -> bytes:
-        # Load background template
-        bg_path = self._get_file_path("assets", self.BG_FILENAME)
-        if bg_path and os.path.exists(bg_path):
-            img = Image.open(bg_path).convert('RGB')
-        else:
-            img = Image.new('RGB', (self.WIDTH, self.HEIGHT), '#E0F2F1')
+
+class ImageGenerator:
+    def __init__(self, assets_path: str):
+        self.assets_path = assets_path
+        # Use a default system font if specialized one not found
+        try:
+            self.font_main = ImageFont.truetype(os.path.join(assets_path, "fonts", "Roboto-Regular.ttf"), 24)
+            self.font_bold = ImageFont.truetype(os.path.join(assets_path, "fonts", "Roboto-Bold.ttf"), 32)
+            self.font_small = ImageFont.truetype(os.path.join(assets_path, "fonts", "Roboto-Light.ttf"), 18)
+        except Exception:
+            self.font_main = ImageFont.load_default()
+            self.font_bold = ImageFont.load_default()
+            self.font_small = ImageFont.load_default()
+
+    async def generate_stats_image(self, user_id: int, stats: dict, calendar_data: dict) -> str:
+        width, height = 800, 600
+        image = Image.new("RGB", (width, height), color=(245, 247, 250))
+        draw = ImageDraw.Draw(image)
+
+        self._draw_header(draw, width)
+        self._draw_stats_summary(draw, stats, 50, 120)
+        self._draw_calendar_heatmap(draw, calendar_data, 50, 300)
+
+        output_path = f"/tmp/stats_{user_id}_{int(datetime.utcnow().timestamp())}.png"
+        image.save(output_path)
+        return output_path
+
+    def _draw_header(self, draw: ImageDraw, width: int):
+        draw.rectangle([0, 0, width, 80], fill=(44, 62, 80))
+        draw.text((width // 2, 40), "HABIT TRACKER", fill=(255, 255, 255), font=self.font_bold, anchor="mm")
+
+    def _draw_stats_summary(self, draw: ImageDraw, stats: dict, x: int, y: int):
+        draw.text((x, y), f"Процент выполнения: {stats.get('completion_rate', 0):.1f}%", fill=(52, 73, 94), font=self.font_main)
+        draw.text((x, y + 40), f"Лучшая привычка: {stats.get('best_habit', '—')}", fill=(52, 73, 94), font=self.font_main)
+        draw.text((x, y + 80), f"Текущий стрик: {stats.get('streak', 0)} дней", fill=(52, 73, 94), font=self.font_main)
+
+    def _draw_calendar_heatmap(self, draw: ImageDraw, calendar_data: dict, start_x: int, start_y: int):
+        draw.text((start_x, start_y - 30), "Активность (последние 5 недель):", fill=(44, 62, 80), font=self.font_main)
+        
+        square_size = 30
+        gap = 5
+        
+        # We draw 5 weeks (35 days)
+        today = datetime.utcnow().date()
+        start_date = today - timedelta(days=34)
+        
+        for i in range(35):
+            current_date = start_date + timedelta(days=i)
+            date_str = current_date.strftime("%Y-%m-%d")
             
-        draw = ImageDraw.Draw(img)
-        
-        self._draw_header(draw, user_data)
-        self._draw_stats_summary(draw, stats)
-        
-        img_byte_arr = io.BytesIO()
-        img.save(img_byte_arr, format='JPEG', quality=95)
-        return img_byte_arr.getvalue()
-
-    def _get_file_path(self, folder: str, filename: str):
-        # Determine the root directory (3 levels up from this file)
-        root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
-        
-        paths = [
-            # 1. Absolute path in Docker
-            f"/app/{folder}/{filename}",
-            # 2. Absolute path relative to project root
-            os.path.join(root_dir, folder, filename),
-        ]
-        
-        if folder == "assets":
-            # Specific handling for fonts
-            paths.extend([
-                f"/app/assets/fonts/{filename}",
-                os.path.join(root_dir, "assets/fonts", filename),
-            ])
-
-        for p in paths:
-            if os.path.exists(p):
-                return p
-        
-        # Fallback to local discovery for development
-        dev_path = os.path.join(os.getcwd(), folder, filename)
-        if os.path.exists(dev_path):
-            return dev_path
+            # Default color (empty)
+            color = (224, 230, 235)
             
-        return None
+            if date_str in calendar_data:
+                day_stats = calendar_data[date_str]
+                total = day_stats.get("total", 0)
+                completed = day_stats.get("completed", 0)
+                
+                if total > 0:
+                    ratio = completed / total
+                    if ratio > 0.8:
+                        color = (39, 174, 96) # Green
+                    elif ratio > 0.5:
+                        color = (46, 204, 113) # Light green
+                    elif ratio > 0:
+                        color = (169, 223, 191) # Faint green
+                    else:
+                        color = (231, 76, 60) # Red (all missed)
 
-    def _get_font(self, size: int, weight=400, slant=-10):
-        font_path = self._get_file_path("assets", self.FONT_FILENAME)
-        if font_path:
-            try:
-                font = ImageFont.truetype(font_path, size)
-                # Check if it's a variable font and set axes
-                if hasattr(font, 'set_variation_by_axes'):
-                    try:
-                        font.set_variation_by_axes([weight, slant])
-                    except Exception as e:
-                        print(f"Error setting variation axes: {e}")
-                return font
-            except Exception as e:
-                print(f"Error loading font {font_path}: {e}")
-        
-        print(f"WARNING: Could not load {self.FONT_FILENAME}, falling back to default")
-        return ImageFont.load_default()
-
-    def _draw_text_with_spacing(self, draw: ImageDraw, position: tuple, text: str, font, fill: str, spacing_px: float, align="left", container_width=0):
-        text = text.lower()
-        # Calculate width for alignment
-        chars = list(text)
-        widths = []
-        for char in chars:
-            try:
-                widths.append(font.getlength(char))
-            except:
-                widths.append(font.size * 0.5)
-        
-        total_text_width = sum(widths) + (len(chars) - 1) * spacing_px
-        
-        start_x, y = position
-        if align == "right" and container_width > 0:
-            start_x = start_x + container_width - total_text_width
+            # Draw square
+            week = i // 7
+            day = i % 7
+            x = start_x + week * (square_size + gap)
+            y = start_y + day * (square_size + gap)
             
-        current_x = start_x
-        for i, char in enumerate(chars):
-            draw.text((current_x, y), char, font=font, fill=fill)
-            current_x += widths[i] + spacing_px
-        return total_text_width
+            draw.rectangle([x, y, x + square_size, y + square_size], fill=color)
 
-    def _draw_header(self, draw: ImageDraw, user_data: dict):
-        username = user_data.get("username", "user") if user_data else "user"
-        font_80 = self._get_font(80) # Default is regular italic (slant=-10)
-        font_32 = self._get_font(32)
-        
-        # Container start
-        base_x, base_y = 60, 60
-        container_w = 648
-        
-        # "статистика"
-        self._draw_text_with_spacing(draw, (base_x, base_y), "статистика", font_80, "#2A2D43", -4)
-        
-        # "for @username" - gap 20px, right aligned
-        self._draw_text_with_spacing(draw, (base_x, base_y + 80 + 20), f"for @{username}", font_32, "#2A2D43", -2.238, align="right", container_width=container_w)
-
-    def _draw_stats_summary(self, draw: ImageDraw, stats: dict):
-        rate = stats.get("completion_rate", 0)
-        month = get_russian_month()
-        font_60 = self._get_font(60)
-        
-        # Vertical Centering Calculation:
-        # Block 1 height: 60 (label) + 20 (gap) + 60 (value) = 140px
-        # Block 2 height: 60 (label) + 20 (gap) + 60 (value) = 140px
-        # Existing gap between blocks: 130px (from 410 and 680 starts: 680 - (410 + 140) = 130)
-        # Total group height: 140 + 130 + 140 = 410px
-        # Target start Y for centering: (1024 - 410) / 2 = 307px
-        
-        # Monthly Block
-        base_x, base_y = 60, 307 
-        container_w = 626
-        
-        # "за месяц (месяц)"
-        self._draw_text_with_spacing(draw, (base_x, base_y), f"за месяц ({month})", font_60, "#2A2D43", -4)
-        
-        # "успешность – x%" - gap 20px, right aligned
-        self._draw_text_with_spacing(draw, (base_x, base_y + 60 + 20), f"успешность – {rate:.0f}%", font_60, "#127475", -4, align="right", container_width=container_w)
-
-        # Best Habit Block
-        base_x, base_y = 60, 577 # 307 (start) + 140 (block 1) + 130 (gap) = 577
-        container_w = 648
-        
-        # "лучшая привычка"
-        self._draw_text_with_spacing(draw, (base_x, base_y), "лучшая привычка", font_60, "#2A2D43", -4)
-        
-        best = stats.get("best_habit")
-        val_text = best.get("name") if best else "нет данных"
-        # Best habit name - gap 20px, right aligned
-        self._draw_text_with_spacing(draw, (base_x, base_y + 60 + 20), val_text, font_60, "#DD614A", -4, align="right", container_width=container_w)
+        # Legend
+        draw.text((start_x, start_y + 7 * (square_size + gap) + 10), "✓ - выполнено, ✗ - пропущено", fill=(127, 140, 141), font=self.font_small)

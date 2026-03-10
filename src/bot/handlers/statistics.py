@@ -1,9 +1,10 @@
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, BufferedInputFile, Message
+from aiogram.types import CallbackQuery, FSInputFile, Message
 from bot.config.messages_loader import get_msg
 from bot.services.statistics_service import StatisticsService
-from bot.services.image_generator import StatsImageGenerator
+from bot.services.image_generator import ImageGenerator
 from bot.services.habit_service import HabitService
+import os
 
 router = Router()
 
@@ -37,16 +38,19 @@ async def show_statistics(event: Message | CallbackQuery, stats_service: Statist
     
     stats_data = {
         "completion_rate": comp_rate,
-        "best_habit": best_habit,
-        "streaks": streaks,
-        "calendar_data": cal_data
+        "best_habit": best_habit.get("name") if best_habit else "—",
+        "streak": streaks.get(str(best_habit["_id"])) if best_habit else 0
     }
     
-    generator = StatsImageGenerator()
-    img_bytes = generator.generate(user, stats_data)
+    assets_path = os.path.join(os.path.dirname(__file__), "..", "..", "assets")
+    generator = ImageGenerator(assets_path)
+    img_path = await generator.generate_stats_image(uid, stats_data, cal_data)
     
-    photo = BufferedInputFile(img_bytes, filename="stats.jpg")
+    photo = FSInputFile(img_path)
     
     from bot.keyboards.main_menu import get_main_menu_keyboard
     await loading_msg.delete()
     await msg.answer_photo(photo, caption=get_msg("statistics.caption"), reply_markup=get_main_menu_keyboard())
+    
+    if os.path.exists(img_path):
+        os.remove(img_path)

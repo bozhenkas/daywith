@@ -13,8 +13,10 @@ start:
 habits:
   add_prompt: "введи название привычки \n\n<i>(или '/back' для отмены):</i>"
   choose_type: "какого типа эта привычка?"
-  choose_goal: "как часто хочешь ее отмечать? (в неделю)"
+  choose_goal: "как часто хочешь её выполнять в неделю?\n(выбери от 1 до 7 раз)"
   add_success: "привычка '{habit_name}' добавлена.\nвведи название следующей привычки \n\n<i>(или '/back' для отмены):</i>"
+  rename_prompt: "введи новое название привычки:"
+  rename_success: "привычка переименована в '{habit_name}'."
   list_empty: "у тебя пока нет привычек"
   list_header: "твои привычки:"
   habit_info: "{icon} {name}"
@@ -26,6 +28,7 @@ habits:
 daily:
   digest_header: "отметь привычки за {date}:"
   habit_marked: "привычки отмечены"
+  all_done: "все привычки за {date} отмечены ✓"
   digest_empty: "на сегодня нет активных привычек."
 
 statistics:
@@ -35,9 +38,10 @@ statistics:
   best_empty: "нет данных"
   no_data: "недостаточно данных для расчета"
   menu_header: "главное меню:"
-  
+
 history:
-  pick_date_prompt: "выбери день:"
+  pick_date_prompt: "введи дату в формате дд.мм.гггг (например, 08.03.2026):"
+  pick_date_invalid: "неверный формат даты. попробуй ещё раз (дд.мм.гггг):"
   header: "история за {date}:"
   done: "✓ выполнено"
   skipped: "✗ пропущено"
@@ -49,6 +53,8 @@ settings:
   notifications_on: "включены"
   notifications_off: "выключены"
   notifs_updated: "уведомления {status}"
+  tz_prompt: "выбери свой часовой пояс:"
+  tz_updated: "часовой пояс изменён на {tz}"
 
 errors:
   general: "что-то пошло не так"
