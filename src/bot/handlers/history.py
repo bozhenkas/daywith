@@ -7,7 +7,7 @@ from bot.config.messages_loader import get_msg
 from bot.keyboards.history_kb import get_date_navigation_keyboard
 from bot.keyboards.main_menu import get_back_reply_keyboard
 from bot.services.habit_service import HabitService
-from bot.utils.date_utils import parse_date_str
+from bot.utils.date_utils import parse_date_str, user_now
 from aiogram.fsm.context import FSMContext
 from bot.fsm.states import HistoryStates
 
@@ -16,15 +16,15 @@ router = Router()
 
 
 @router.message(F.text == "история")
-async def show_history_today(message: Message, habit_service: HabitService, state: FSMContext):
+async def show_history_today(message: Message, habit_service: HabitService, state: FSMContext, user: dict) -> None:
     msg1 = await message.answer(get_msg("habits.info_emoji"), reply_markup=get_back_reply_keyboard(), disable_notification=True)
-    today = datetime.utcnow()
+    today = user_now(user.get("timezone", "Europe/Moscow"))
     await _render_history(message, today, habit_service, state=state, msg1=msg1)
 
 
 @router.callback_query(F.data.startswith("hist:prev:"))
 @router.callback_query(F.data.startswith("hist:next:"))
-async def navigate_history(callback: CallbackQuery, habit_service: HabitService):
+async def navigate_history(callback: CallbackQuery, habit_service: HabitService) -> None:
     await callback.answer()
     date_str = callback.data.split(":")[2]
     d = parse_date_str(date_str)
@@ -32,25 +32,25 @@ async def navigate_history(callback: CallbackQuery, habit_service: HabitService)
 
 
 @router.callback_query(F.data == "hist:today")
-async def navigate_today(callback: CallbackQuery, habit_service: HabitService):
+async def navigate_today(callback: CallbackQuery, habit_service: HabitService, user: dict) -> None:
     await callback.answer()
-    await _render_history(callback, datetime.utcnow(), habit_service)
+    await _render_history(callback, user_now(user.get("timezone", "Europe/Moscow")), habit_service)
 
 
 @router.callback_query(F.data == "hist:noop")
-async def noop_history(callback: CallbackQuery):
+async def noop_history(callback: CallbackQuery) -> None:
     await callback.answer()
 
 
 @router.callback_query(F.data == "hist:pick")
-async def pick_date(callback: CallbackQuery, state: FSMContext):
+async def pick_date(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     await callback.message.edit_text(get_msg("history.pick_date_prompt"))
     await state.set_state(HistoryStates.waiting_for_date)
 
 
 @router.message(HistoryStates.waiting_for_date)
-async def process_picked_date(message: Message, state: FSMContext, habit_service: HabitService):
+async def process_picked_date(message: Message, state: FSMContext, habit_service: HabitService) -> None:
     text = message.text.strip() if message.text else ""
     try:
         d = datetime.strptime(text, "%d.%m.%Y")
@@ -61,7 +61,7 @@ async def process_picked_date(message: Message, state: FSMContext, habit_service
     await _render_history(message, d, habit_service)
 
 
-async def _render_history(event, target_date: datetime, habit_service: HabitService, state: FSMContext = None, msg1: Message = None):
+async def _render_history(event: Message | CallbackQuery, target_date: datetime, habit_service: HabitService, state: FSMContext = None, msg1: Message = None) -> None:
     user_id = event.from_user.id
     date_str = target_date.strftime("%Y-%m-%d")
     logs = await habit_service.get_daily_logs(user_id, date_str)

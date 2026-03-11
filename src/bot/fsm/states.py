@@ -20,3 +20,4 @@ class HistoryStates(StatesGroup):
 
 class SettingsStates(StatesGroup):
     waiting_for_tz = State()
+    waiting_for_tz_manual = State()

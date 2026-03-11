@@ -1,5 +1,4 @@
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
-import asyncio
 
 class MongoRepo:
     def __init__(self, uri: str, db_name: str):

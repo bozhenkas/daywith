@@ -11,9 +11,9 @@ class ImageGenerator:
         self.assets_path = assets_path
         # Use a default system font if specialized one not found
         try:
-            self.font_main = ImageFont.truetype(os.path.join(assets_path, "fonts", "Roboto-Regular.ttf"), 24)
-            self.font_bold = ImageFont.truetype(os.path.join(assets_path, "fonts", "Roboto-Bold.ttf"), 32)
-            self.font_small = ImageFont.truetype(os.path.join(assets_path, "fonts", "Roboto-Light.ttf"), 18)
+            self.font_main = ImageFont.truetype(os.path.join(assets_path, "fonts", "Inter-Regular.ttf"), 24)
+            self.font_bold = ImageFont.truetype(os.path.join(assets_path, "fonts", "Inter-Medium.ttf"), 32)
+            self.font_small = ImageFont.truetype(os.path.join(assets_path, "fonts", "Inter-Regular.ttf"), 18)
         except Exception:
             self.font_main = ImageFont.load_default()
             self.font_bold = ImageFont.load_default()

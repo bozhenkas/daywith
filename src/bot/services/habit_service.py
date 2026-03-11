@@ -45,12 +45,12 @@ class HabitService:
                     "is_premium": is_premium,
                 }},
             )
-            return user
+            return await self.repo.db.users.find_one({"telegram_id": tg_id})
 
     async def get_user(self, tg_id: int) -> Optional[dict]:
         return await self.repo.db.users.find_one({"telegram_id": tg_id})
 
-    async def reset_user_data(self, user_id: int):
+    async def reset_user_data(self, user_id: int) -> None:
         habits = await self.repo.db.habits.find({"user_id": user_id}).to_list(None)
         if habits:
             for h in habits:
@@ -70,12 +70,12 @@ class HabitService:
             {"$set": {"digest_time": "21:00", "notifications_enabled": True}},
         )
 
-    async def update_user_time(self, tg_id: int, new_time: str):
+    async def update_user_time(self, tg_id: int, new_time: str) -> None:
         await self.repo.db.users.update_one(
             {"telegram_id": tg_id}, {"$set": {"digest_time": new_time}}
         )
 
-    async def update_user_timezone(self, tg_id: int, timezone: str):
+    async def update_user_timezone(self, tg_id: int, timezone: str) -> None:
         await self.repo.db.users.update_one(
             {"telegram_id": tg_id}, {"$set": {"timezone": timezone}}
         )
@@ -88,7 +88,12 @@ class HabitService:
         )
         return new_val
 
-    async def create_habit(self, user_id: int, name: str, h_type: str, goal: int = 7):
+    async def update_last_digest_date(self, tg_id: int, date_str: str) -> None:
+        await self.repo.db.users.update_one(
+            {"telegram_id": tg_id}, {"$set": {"last_digest_date": date_str}}
+        )
+
+    async def create_habit(self, user_id: int, name: str, h_type: str, goal: int = 7) -> None:
         habit = HabitData(
             user_id=user_id,
             name=name,
@@ -102,17 +107,17 @@ class HabitService:
         query = {"user_id": user_id}
         if active_only:
             query["archived"] = False
-        return await self.repo.db.habits.find(query).to_list(length=None)
+        return await self.repo.db.habits.find(query).sort("created_at", 1).to_list(length=None)
 
     async def get_habit(self, habit_id: str) -> Optional[dict]:
         return await self.repo.db.habits.find_one({"_id": ObjectId(habit_id)})
 
-    async def archive_habit(self, habit_id: str):
+    async def archive_habit(self, habit_id: str) -> None:
         await self.repo.db.habits.update_one(
             {"_id": ObjectId(habit_id)}, {"$set": {"archived": True}}
         )
 
-    async def rename_habit(self, habit_id: str, new_name: str):
+    async def rename_habit(self, habit_id: str, new_name: str) -> None:
         await self.repo.db.habits.update_one(
             {"_id": ObjectId(habit_id)}, {"$set": {"name": new_name}}
         )
@@ -122,7 +127,7 @@ class HabitService:
             {"user_id": user_id, "date": date_str}
         ).to_list(length=None)
 
-    async def mark_habit(self, user_id: int, habit_id: str, date_str: str, completed: bool):
+    async def mark_habit(self, user_id: int, habit_id: str, date_str: str, completed: bool) -> None:
         h_id = ObjectId(habit_id)
         log = await self.repo.db.daily_logs.find_one(
             {"user_id": user_id, "habit_id": h_id, "date": date_str}

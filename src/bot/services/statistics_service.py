@@ -8,14 +8,13 @@ class StatisticsService:
         self.repo = db_repo
 
     async def get_completion_rate(self, user_id: int, days: int = 30) -> float:
-        cutoff = datetime.utcnow() - timedelta(days=days)
+        today = datetime.utcnow().date()
+        cutoff_str = (today - timedelta(days=days)).strftime("%Y-%m-%d")
         logs = await self.repo.db.daily_logs.find(
-            {"user_id": user_id, "created_at": {"$gte": cutoff}}
+            {"user_id": user_id, "date": {"$gte": cutoff_str}}
         ).to_list(length=None)
-
         if not logs:
             return 0.0
-
         completed = sum(1 for log in logs if log.get("completed", False))
         return (completed / len(logs)) * 100
 
@@ -40,9 +39,7 @@ class StatisticsService:
         for log in logs:
             if not log.get("completed", False):
                 break
-
             log_date = datetime.strptime(log["date"], "%Y-%m-%d").date()
-
             if prev_date is None:
                 streak = 1
                 prev_date = log_date
@@ -67,22 +64,21 @@ class StatisticsService:
             result[str(h["_id"])] = streak
         return result
 
-    async def get_best_habit(self, user_id: int) -> dict:
+    async def get_best_habit(self, user_id: int) -> dict | None:
         streaks = await self.get_current_streaks(user_id)
         if not streaks:
             return None
-
         best_id = max(streaks, key=streaks.get)
         if streaks[best_id] == 0:
             return None
-
         h = await self.repo.db.habits.find_one({"_id": ObjectId(best_id)})
-        return {"name": h["name"], "streak": streaks[best_id]}
+        return {"_id": best_id, "name": h["name"], "streak": streaks[best_id]}
 
     async def get_calendar_data(self, user_id: int, days: int = 35) -> dict:
-        cutoff = datetime.utcnow() - timedelta(days=days)
+        today = datetime.utcnow().date()
+        cutoff_str = (today - timedelta(days=days)).strftime("%Y-%m-%d")
         logs = await self.repo.db.daily_logs.find(
-            {"user_id": user_id, "created_at": {"$gte": cutoff}}
+            {"user_id": user_id, "date": {"$gte": cutoff_str}}
         ).to_list(length=None)
 
         date_map = {}

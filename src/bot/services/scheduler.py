@@ -2,6 +2,7 @@ import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram import Bot
 from bot.config.messages_loader import get_msg
+from bot.keyboards.daily_kb import get_daily_check_keyboard
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -14,7 +15,7 @@ class DigestScheduler:
         self.bot = bot
         self.habit_service = habit_service
 
-    def start(self):
+    def start(self) -> None:
         self.scheduler.add_job(
             self.send_digests,
             "cron",
@@ -23,10 +24,8 @@ class DigestScheduler:
         )
         self.scheduler.start()
 
-    async def send_digests(self):
+    async def send_digests(self) -> None:
         users = await self.habit_service.get_all_notif_users()
-
-        from bot.keyboards.daily_kb import get_daily_check_keyboard
 
         for u in users:
             tz_str = u.get("timezone", "Europe/Moscow")
@@ -42,6 +41,9 @@ class DigestScheduler:
             if u.get("digest_time") != user_time_str:
                 continue
 
+            if u.get("last_digest_date") == user_date_str:
+                continue
+
             habits = await self.habit_service.get_user_habits(u["telegram_id"])
             if not habits:
                 continue
@@ -54,5 +56,6 @@ class DigestScheduler:
                     text=text,
                     reply_markup=kb,
                 )
+                await self.habit_service.update_last_digest_date(u["telegram_id"], user_date_str)
             except Exception as e:
                 logger.warning("Failed to send digest to %s: %s", u["telegram_id"], e)
