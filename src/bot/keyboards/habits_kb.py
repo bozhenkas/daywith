@@ -10,7 +10,8 @@ def get_habits_list_keyboard(habits: List[Dict[str, Any]], page: int = 1, page_s
     page_habits = habits[start_idx:end_idx]
 
     for h in page_habits:
-        kb.append([InlineKeyboardButton(text=h['name'], callback_data=f"habit:edit:{h['_id']}")])
+        style = "success" if h["type"] == "good" else "danger"
+        kb.append([InlineKeyboardButton(text=h['name'], callback_data=f"habit:edit:{h['_id']}", **{"style": style})])
 
     total_pages = (len(habits) + page_size - 1) // page_size if habits else 1
     if total_pages > 1:
