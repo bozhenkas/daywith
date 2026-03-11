@@ -15,18 +15,18 @@ def get_daily_check_keyboard(habits: List[dict], page: int = 1) -> InlineKeyboar
     for h in page_habits:
         h_id = str(h["_id"])
         kb.append([
-            InlineKeyboardButton(text="✓", callback_data=f"daily:done:{h_id}"),
-            InlineKeyboardButton(text=h["name"], callback_data=f"daily:info:{h_id}"),
-            InlineKeyboardButton(text="✗", callback_data=f"daily:skip:{h_id}"),
+            InlineKeyboardButton(text="✓", callback_data=f"daily:done:{h_id}", **{"style": "success"}),
+            InlineKeyboardButton(text=h["name"], callback_data=f"daily:info:{h_id}", **{"style": "primary"}),
+            InlineKeyboardButton(text="✗", callback_data=f"daily:skip:{h_id}", **{"style": "danger"}),
         ])
 
     if total_pages > 1:
         nav = []
         if page > 1:
-            nav.append(InlineKeyboardButton(text="⤝", callback_data=f"daily:page:{page - 1}"))
-        nav.append(InlineKeyboardButton(text=f"[{page}/{total_pages}]", callback_data="daily:noop"))
+            nav.append(InlineKeyboardButton(text="⤝", callback_data=f"daily:page:{page - 1}", **{"style": "primary"}))
+        nav.append(InlineKeyboardButton(text=f"[{page}/{total_pages}]", callback_data="daily:noop", **{"style": "primary"}))
         if page < total_pages:
-            nav.append(InlineKeyboardButton(text="⤞", callback_data=f"daily:page:{page + 1}"))
+            nav.append(InlineKeyboardButton(text="⤞", callback_data=f"daily:page:{page + 1}", **{"style": "primary"}))
         kb.append(nav)
 
     return InlineKeyboardMarkup(inline_keyboard=kb)
